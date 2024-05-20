@@ -1,0 +1,3 @@
+[submodule "fund-raiser-dapp/lib/chainlink-brownie-contracts"]
+	path = fund-raiser-dapp/lib/chainlink-brownie-contracts
+	url = https://github.com/smartcontractkit/chainlink-brownie-contracts
