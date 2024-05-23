@@ -11,11 +11,12 @@ contract FundMe {
     
     uint256 public constant MINIMUM_USD = 5e18;
 
-    address[] public funders;
+    address[] private s_funders;
 
-    mapping (address funder => uint256 amountFunded) public addressToAmountFunded;
+    mapping (address funder => uint256 amountFunded) private s_addressToAmountFunded;
 
-    address public immutable i_owner;
+    address private immutable i_owner;
+
     AggregatorV3Interface private s_priceFeed;
 
     constructor(address priceFeed) {
@@ -25,18 +26,18 @@ contract FundMe {
 
     function fund() public payable {
         require(msg.value.getConversionRate(s_priceFeed) >= MINIMUM_USD, "didn't send enough ETH");
-        funders.push(msg.sender);
-        addressToAmountFunded[msg.sender] += msg.value;
+        s_funders.push(msg.sender);
+        s_addressToAmountFunded[msg.sender] += msg.value;
     }
 
     function withdraw() external onlyOwner {
         require(msg.sender == i_owner, "must be owner");
-        for(uint256 funderIndex = 0; funderIndex < funders.length; funderIndex++) {
-            address funder = funders[funderIndex];
-            addressToAmountFunded[funder] = 0;
+        for(uint256 funderIndex = 0; funderIndex < s_funders.length; funderIndex++) {
+            address funder = s_funders[funderIndex];
+            s_addressToAmountFunded[funder] = 0;
         }
         // resetting the array
-        funders = new address[](0);
+        s_funders = new address[](0);
         // withdraw the funds
         payable(msg.sender).transfer(address(this).balance);
     }
@@ -49,4 +50,20 @@ contract FundMe {
         require(msg.sender == i_owner, "sender must be owner");
         _;
     }
+
+    /**
+     * View/ Pure functions
+     */
+
+    function getAddressToAmountFunded(address funder) public view returns (uint256) {
+        return s_addressToAmountFunded[funder];
+    }
+
+    function getFunder(uint256 index) public view returns (address) {
+        return s_funders[index];
+    }
+
+    function getOwner() public view returns (address) {
+        return i_owner;
+    } 
 }
